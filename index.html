@@ -25,7 +25,7 @@
             document.getElementById("RAASLogout").style.display = "block";
 
             // Get the username (replace with your actual method to retrieve the username)
-            const username = r.profile.firstName+" "+r.profile.lastName; // Replace with the actual username
+            const username = r.profile.firstName + " " + r.profile.lastName; // Replace with the actual username
 
             // Update the welcome message with the username
             document.getElementById("username").textContent = username;
@@ -52,6 +52,22 @@
         });
         gigya.hasSession().then(function (sessionExist) {
           console.log("fired from HTML JS - Logged In", sessionExist);
+          gigya.accounts.getAccountInfo({
+            callback: function (params) {
+              // User is logged in
+              console.log("onLogin fired from HTML JS", r);
+              document.getElementById("RAASLogin").style.display = "none";
+              document.getElementById("welcomeMessageAnon").style.display = "none";
+              document.getElementById("welcomeMessage").style.display = "block";
+              document.getElementById("RAASLogout").style.display = "block";
+
+              // Get the username (replace with your actual method to retrieve the username)
+              const username = r.profile.firstName + " " + r.profile.lastName; // Replace with the actual username
+
+              // Update the welcome message with the username
+              document.getElementById("username").textContent = username;
+            }
+          })
         });
       },
     };
@@ -70,23 +86,25 @@
       });
     }
 
-    function  logout(){
-      gigya.acounts.logout({callback:function(r){
-        console.log("User logged out",r)
+    function logout() {
+      gigya.acounts.logout({
+        callback: function (r) {
+          console.log("User logged out", r)
 
-            // Get the username (replace with your actual method to retrieve the username)
-            //const username = r.profile.firstName+" "+r.profile.lastName; // Replace with the actual username
+          // Get the username (replace with your actual method to retrieve the username)
+          //const username = r.profile.firstName+" "+r.profile.lastName; // Replace with the actual username
 
-            // Update the welcome message with the username
-            //document.getElementById("username").textContent = username;
-      }})
+          // Update the welcome message with the username
+          //document.getElementById("username").textContent = username;
+        }
+      })
     }
   </script>
   <script src="https://cdns.gigya.com/js/gigya.js?apikey=4_rRdNpwgkoWC395b6eGf3CA"></script>
   <script src="https://code.jquery.com/jquery-3.4.1.min.js"
     integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
 
-    <!-- The welcome message (initially hidden) -->
+  <!-- The welcome message (initially hidden) -->
   <div id="welcomeMessageAnon" style="display: none;">
     Welcome , please login!
   </div>

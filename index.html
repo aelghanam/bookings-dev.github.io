@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, shrink-to-fit=no"
+    />
+    <link rel="icon" type="image/jpg" href="favicon.png" />
+    <title>CCC Optimo</title>
+  </head>
+  <body>
+    BLAHH
+
+    <script>
+      __gigyaConf = {
+        sessionExpiration: 60 * 60 * 24 * 3,
+        onGigyaServiceReady: function () {
+          gigya.accounts.addEventHandlers({
+            onLogin: function (r) {
+              // User is logged in
+              console.log("onLogin fired from HTML JS",r);
+            },
+            onLogout: function (r) {
+              // User is logged out
+              console.log("onLogout fired from HTML JS",r);
+            },
+          });
+          gigya.accounts.session.verify({
+            callback: function (response) {
+                console.log("Session.Verify response:",response)
+              if (response.errorCode == 0) {
+                // gigya.accounts.showScreenSet({screenSet:'Default-ProfileUpdate',containerID: 'RAASLogin'});
+                console.log("sessionVerified fired from HTML JS");
+              } else {
+                console.log("sessionNotVerified fired from HTML JS");
+              }
+            },
+          });
+          gigya.hasSession().then(function (sessionExist) {
+            console.log("fired from HTML JS - Logged In", sessionExist);
+          });
+        },
+      };
+    </script>
+    <script>
+      function login() {
+        gigya.sso.login({
+          authFlow: "redirect",
+          redirectURL: window.location.href,
+          context: {
+            myCustomLang: "en",
+            myCustomSessionExpiration: 60 * 60 * 24 * 3,
+            useChildContext: true,
+            custom: "sss",
+          },
+        });
+      }
+    </script>
+    <script src="https://cdns.gigya.com/js/gigya.js?apikey=4_trFlKNIXFGlKzieCDtVA7g"></script>
+    <script
+      src="https://code.jquery.com/jquery-3.4.1.min.js"
+      integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo="
+      crossorigin="anonymous"
+    ></script>
+
+    <div id="RAASLogin">
+      <input type="submit" value="Log In" onclick="login()" />
+    </div>
+    <script></script>
+  </body>
+</html>

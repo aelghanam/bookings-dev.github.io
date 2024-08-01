@@ -19,8 +19,10 @@
           onLogin: function (r) {
             // User is logged in
             console.log("onLogin fired from HTML JS", r);
-            document.getElementById("loginButton").style.display = "none";
+            document.getElementById("RAASLogin").style.display = "none";
+            document.getElementById("welcomeMessageAnon").style.display = "none";
             document.getElementById("welcomeMessage").style.display = "block";
+            document.getElementById("RAASLogout").style.display = "block";
 
             // Get the username (replace with your actual method to retrieve the username)
             const username = r.profile.firstName+" "+r.profile.lastName; // Replace with the actual username
@@ -31,6 +33,10 @@
           onLogout: function (r) {
             // User is logged out
             console.log("onLogout fired from HTML JS", r);
+            document.getElementById("RAASLogin").style.display = "block";
+            document.getElementById("welcomeMessageAnon").style.display = "block";
+            document.getElementById("welcomeMessage").style.display = "none";
+            document.getElementById("RAASLogout").style.display = "none";
           },
         });
         gigya.accounts.session.verify({
@@ -63,19 +69,39 @@
         },
       });
     }
+
+    function  logout(){
+      gigya.acounts.logout({callback:function(r){
+        console.log("User logged out",r)
+
+            // Get the username (replace with your actual method to retrieve the username)
+            //const username = r.profile.firstName+" "+r.profile.lastName; // Replace with the actual username
+
+            // Update the welcome message with the username
+            //document.getElementById("username").textContent = username;
+      }})
+    }
   </script>
   <script src="https://cdns.gigya.com/js/gigya.js?apikey=4_rRdNpwgkoWC395b6eGf3CA"></script>
   <script src="https://code.jquery.com/jquery-3.4.1.min.js"
     integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
 
+    <!-- The welcome message (initially hidden) -->
+  <div id="welcomeMessageAnon" style="display: none;">
+    Welcome , please login!
+  </div>
   <!-- The login button -->
   <div id="RAASLogin">
-    <input id="loginButton" type="submit" value="Log In" onclick="login()" />
+    <input id="loginButton" type="submit" value="Login" onclick="login()" />
   </div>
 
   <!-- The welcome message (initially hidden) -->
   <div id="welcomeMessage" style="display: none;">
     Welcome back, <span id="username"></span>!
+  </div>
+  <!-- The login button -->
+  <div id="RAASLogout">
+    <input id="loginButton" type="submit" value="Logout" onclick="logout()" />
   </div>
 
   <script></script>

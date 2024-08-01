@@ -105,11 +105,11 @@
     integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
 
   <!-- The welcome message (initially hidden) -->
-  <div id="welcomeMessageAnon" style="display: none;">
+  <div id="welcomeMessageAnon" style="display: block;">
     Welcome , please login!
   </div>
   <!-- The login button -->
-  <div id="RAASLogin">
+  <div id="RAASLogin" style="display: block;">
     <input id="loginButton" type="submit" value="Login" onclick="login()" />
   </div>
 
@@ -118,7 +118,7 @@
     Welcome back, <span id="username"></span>!
   </div>
   <!-- The login button -->
-  <div id="RAASLogout">
+  <div id="RAASLogout" style="display: none;">
     <input id="loginButton" type="submit" value="Logout" onclick="logout()" />
   </div>
 

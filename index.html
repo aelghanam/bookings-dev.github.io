@@ -36,72 +36,126 @@
   </div>
 
   <script>
+    function logoutUI() {
+      // User is logged out
+      console.log("logoutUI");
+      document.getElementById("RAASLogin").style.display = "block";
+      document.getElementById("welcomeMessageAnon").style.display = "block";
+      document.getElementById("welcomeMessage").style.display = "none";
+      document.getElementById("RAASLogout").style.display = "none";
+    }
+
+    function loginUI() {
+      gigya.accounts.getAccountInfo({
+        callback: function (r) {
+          // User is logged in
+          console.log("onLogin fired from HTML JS", r);
+          document.getElementById("RAASLogin").style.display = "none";
+          document.getElementById("welcomeMessageAnon").style.display =
+            "none";
+          document.getElementById("welcomeMessage").style.display = "block";
+          document.getElementById("RAASLogout").style.display = "block";
+
+          // Get the username (replace with your actual method to retrieve the username)
+          const username = r.profile.firstName + " " + r.profile.lastName; // Replace with the actual username
+
+          // Update the welcome message with the username
+          document.getElementById("username").textContent = username;
+        },
+      });
+    }
     __gigyaConf = {
       sessionExpiration: 60 * 60 * 24 * 3,
       onGigyaServiceReady: function () {
         gigya.accounts.addEventHandlers({
           onLogin: function (r) {
-            // User is logged in
-            console.log("onLogin fired from HTML JS", r);
-            document.getElementById("RAASLogin").style.display = "none";
-            document.getElementById("welcomeMessageAnon").style.display = "none";
-            document.getElementById("welcomeMessage").style.display = "block";
-            document.getElementById("RAASLogout").style.display = "block";
-
-            // Get the username (replace with your actual method to retrieve the username)
-            const username = r.profile.firstName + " " + r.profile.lastName; // Replace with the actual username
-
-            // Update the welcome message with the username
-            document.getElementById("username").textContent = username;
+            loginUI();
           },
           onLogout: function (r) {
-            // User is logged out
-            console.log("onLogout fired from HTML JS", r);
-            document.getElementById("RAASLogin").style.display = "block";
-            document.getElementById("welcomeMessageAnon").style.display = "block";
-            document.getElementById("welcomeMessage").style.display = "none";
-            document.getElementById("RAASLogout").style.display = "none";
+            // // User is logged out
+            // console.log("onLogout fired from HTML JS", r);
+            // document.getElementById("RAASLogin").style.display = "block";
+            // document.getElementById("welcomeMessageAnon").style.display =
+            //   "block";
+            // document.getElementById("welcomeMessage").style.display = "none";
+            // document.getElementById("RAASLogout").style.display = "none";
+            logoutUI();
           },
         });
-        gigya.accounts.session.verify({
-          callback: function (response) {
-            console.log("Session.Verify response:", response)
-            if (response.errorCode == 0) {
-              // gigya.accounts.showScreenSet({screenSet:'Default-ProfileUpdate',containerID: 'RAASLogin'});
-              console.log("sessionVerified fired from HTML JS");
-            } else {
-              console.log("sessionNotVerified fired from HTML JS");
-            }
-          },
-        });
-        gigya.hasSession().then(function (sessionExist) {
-          console.log("fired from HTML JS - Logged In", sessionExist);
-          if (sessionExist) {
-            gigya.accounts.getAccountInfo({
-              callback: function (r) {
-                // User is logged in
-                console.log("onLogin fired from HTML JS", r);
-                document.getElementById("RAASLogin").style.display = "none";
-                document.getElementById("welcomeMessageAnon").style.display = "none";
-                document.getElementById("welcomeMessage").style.display = "block";
-                document.getElementById("RAASLogout").style.display = "block";
 
-                // Get the username (replace with your actual method to retrieve the username)
-                const username = r.profile.firstName + " " + r.profile.lastName; // Replace with the actual username
+        // Check user login status every 5 seconds (adjust the interval as needed)
+        const checkInterval = 5000; // 5 seconds
 
-                // Update the welcome message with the username
-                document.getElementById("username").textContent = username;
+        function checkUserLoginStatus() {
+          // Replace with your logic to check if the user is logged in
+          // For example, make an AJAX request to your server or check a cookie
+          // If the user is logged in, perform your desired actions
+          // Otherwise, handle the case when the user is not logged in
+          // For demonstration purposes, I'm using a simple console log here:
+          console.log("Checking user login status...");
+
+          gigya.accounts.session.verify({
+            callback: function (response) {
+              console.log("Session.Verify response:", response);
+              if (response.errorCode == 0) {
+                // gigya.accounts.showScreenSet({screenSet:'Default-ProfileUpdate',containerID: 'RAASLogin'});
+                console.log("sessionVerified fired from HTML JS");
+                console.log("User is logged in.");
+                loginUI();
+              } else {
+                console.log("sessionNotVerified fired from HTML JS");
+                console.log("User is not logged in.");
+                logoutUI();
+                // clearInterval(intervalId);
               }
-            })
-          }
-        });
+            },
+          });
+
+          gigya.hasSession().then(function (sessionExist) {
+            console.log("fired from HTML JS - Logged In", sessionExist);
+            if (sessionExist) {
+              // loginUI();
+              console.log("User has session, should be logged in.")
+            } else {
+              // logoutUI();
+              console.log("User doesn't have session, should be logged out.")
+            }
+          });
+        }
+
+        // Call the function initially
+        checkUserLoginStatus();
+
+        // Set up the interval to check regularly
+        var intervalId = setInterval(checkUserLoginStatus, checkInterval);
+
+        // gigya.hasSession().then(function (sessionExist) {
+        //   console.log("fired from HTML JS - Logged In", sessionExist);
+        //   if (sessionExist) {
+        //     gigya.accounts.getAccountInfo({
+        //       callback: function (r) {
+        //         // User is logged in
+        //         console.log("onLogin fired from HTML JS", r);
+        //         document.getElementById("RAASLogin").style.display = "none";
+        //         document.getElementById("welcomeMessageAnon").style.display =
+        //           "none";
+        //         document.getElementById("welcomeMessage").style.display =
+        //           "block";
+        //         document.getElementById("RAASLogout").style.display = "block";
+
+        //         // Get the username (replace with your actual method to retrieve the username)
+        //         const username =
+        //           r.profile.firstName + " " + r.profile.lastName; // Replace with the actual username
+
+        //         // Update the welcome message with the username
+        //         document.getElementById("username").textContent = username;
+        //       },
+        //     });
+        //   }
+        // });
       },
     };
-  </script>
-  <script src="https://cdns.gigya.com/js/gigya.js?apikey=4_rRdNpwgkoWC395b6eGf3CA"></script>
-  <script src="https://code.jquery.com/jquery-3.4.1.min.js"
-    integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
-  <script>
+
     function login() {
       gigya.sso.login({
         authFlow: "redirect",
@@ -110,8 +164,8 @@
           myCustomLang: "en",
           myCustomSessionExpiration: 60 * 60 * 24 * 3,
           useChildContext: true,
-          custom: "github",
-          source: "github"
+          custom: "sss",
+          source: "bookings"
         },
       });
     }
@@ -119,17 +173,20 @@
     function logout() {
       gigya.accounts.logout({
         callback: function (r) {
-          console.log("User logged out", r)
+          console.log("User logged out", r);
 
           // Get the username (replace with your actual method to retrieve the username)
           //const username = r.profile.firstName+" "+r.profile.lastName; // Replace with the actual username
 
           // Update the welcome message with the username
           //document.getElementById("username").textContent = username;
-        }
-      })
+        },
+      });
     }
   </script>
+  <script src="https://cdns.gigya.com/js/gigya.js?apikey=4_rRdNpwgkoWC395b6eGf3CA"></script>
+  <script src="https://code.jquery.com/jquery-3.4.1.min.js"
+    integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>  
 </body>
 
 </html>

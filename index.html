@@ -10,28 +10,41 @@
 
 <body>
   Online Site
-  <br/>
-
-
-
+  <br />
 
   <!-- The welcome message (initially hidden) -->
-  <div id="welcomeMessageAnon" style="display: block;">
-    Welcome, please login!
+  <div id="welcomeMessageAnon" style="display: block">
+    Welcome , please login!
   </div>
+
   <br />
   <!-- The login button -->
-  <div id="RAASLogin" style="display: block;">
+  <div id="RAASLogin" style="display: block">
     <input id="loginButton" type="submit" value="Login" onclick="login()" />
   </div>
 
   <!-- The welcome message (initially hidden) -->
-  <div id="welcomeMessage" style="display: none;">
+  <div id="welcomeMessage" style="display: none">
     Welcome back, <span id="username"></span>!
+    <br />
+    <br />
+    <a id="profileUpdateLink" href="https://logindev.ccc.govt.nz/pages/ccc-cust-update-profile">Want to update your
+      profile, click here</a>
+    <br />
+    <br />
+    <span id="orgContextSelectionSpan" style="display: none">
+      <a id="orgContextSelection" href="https://logindev.ccc.govt.nz/pages/org-change?gig_redirect=">Select another
+        organization</a>
+    </span>
+    <br />
+    <br />
+    <span id="orgMember" style="display: none">
+      You are logged in using the organization, <span id="orgId"></span>!
+    </span>
   </div>
   <br />
   <!-- The login button -->
-  <div id="RAASLogout" style="display: none;">
+  <div id="RAASLogout" style="display: none">
     <input id="loginButton" type="submit" value="Logout" onclick="logout()" />
   </div>
 
@@ -45,14 +58,37 @@
       document.getElementById("RAASLogout").style.display = "none";
     }
 
-    function loginUI() {
+    function loginUI(fromOnLogin) {
+      //Getting the customer object onLogin to get the Groups/Organizations array for the logged in customer to determine if we need to navigate the user to the Organization Selection Hosted Page
       gigya.accounts.getAccountInfo({
+        include: "profile,data,groups",
         callback: function (r) {
-          // User is logged in
+          // User is logged in and returned Customer object with groups/organizations populated
           console.log("onLogin fired from HTML JS", r);
+
+          // Checking only on first login if the user is a member of multiple organizations to navigate them to the organizations selection screen
+          if (fromOnLogin && r.groups && r.groups.organizations && r.groups.organizations.length > 0) {
+            window.location.href = "https://logindev.ccc.govt.nz/pages/org-change?gig_redirect=" + encodeURIComponent(window.location.href);
+          }
+
+          if (r.groups && r.groups.organizations && r.groups.organizations.length > 0) {
+            document.getElementById("orgContextSelection").href = document.getElementById("orgContextSelection").href + encodeURIComponent(window.location.origin);
+            document.getElementById("orgContextSelectionSpan").style.display = "block";
+          }
+
+          // Checking the DOB field (Can be expanded to other fields) to make sure that already existing registered users have it set OR it navigates them to the update profile hosted page
+          if (!r.data.birthDate) {
+            window.location.href = "https://logindev.ccc.govt.nz/pages/ccc-cust-update-profile?gig_redirect=" + encodeURIComponent(window.location.href) + "&gig_source=bookings";
+            //window.location.href="https://logindev.ccc.govt.nz/pages/ccc-cust-reg-comp?gig_redirect="+encodeURIComponent(window.location.href)+"&gig_source=bookings";
+          } else {
+            console.log("Birthdate is SET to ", r.data.birthDate);
+          }
+
+          // Can be ignored, just for POC purposes
           document.getElementById("RAASLogin").style.display = "none";
           document.getElementById("welcomeMessageAnon").style.display =
             "none";
+          document.getElementById("profileUpdateLink").href = document.getElementById("profileUpdateLink").href + "?gig_redirect=" + encodeURIComponent(window.location.origin) + "&gig_source=bookings";
           document.getElementById("welcomeMessage").style.display = "block";
           document.getElementById("RAASLogout").style.display = "block";
 
@@ -61,15 +97,41 @@
 
           // Update the welcome message with the username
           document.getElementById("username").textContent = username;
+
+          // Receiving the parameter back from Organization selection, to check if the logged in user selected individual customer which will go to the ELSE condition below, otherwise it will use the getOrganizationContext to retrieve the currently chosen ORG ID and BPID
+          const urlParams = new URLSearchParams(window.location.search);
+          console.log("Checking the Org Context URL Param", urlParams)
+          let context = urlParams.get("gig_context");
+          if (context && context !== 'IND') {
+            gigya.accounts.b2b.getOrganizationContext({
+              callback: function (o) {
+                console.log(o);
+                if (o.bpid) {
+                  document.getElementById("orgMember").style.display = "block";
+                  document.getElementById("orgId").innerHTML = " with CDC Org ID:<b>" + o.orgId + "</b> and Org BP ID:<b>" + o.bpid + "</b>";
+                } else {
+                  document.getElementById("orgMember").style.display = "none";
+                }
+                //orgMember
+                //orgId
+              }
+            })
+          } else {
+            document.getElementById("orgMember").style.display = "none";
+          }
         },
       });
+
+
     }
+
+    // CDC Configurations
     __gigyaConf = {
       sessionExpiration: 60 * 60 * 24 * 3,
       onGigyaServiceReady: function () {
         gigya.accounts.addEventHandlers({
           onLogin: function (r) {
-            loginUI();
+            loginUI(true);
           },
           onLogout: function (r) {
             // // User is logged out
@@ -84,7 +146,7 @@
         });
 
         // Check user login status every 5 seconds (adjust the interval as needed)
-        const checkInterval = 5000; // 5 seconds
+        const checkInterval = 5000 * 10 + 10; // 5 seconds
 
         function checkUserLoginStatus() {
           // Replace with your logic to check if the user is logged in
@@ -111,16 +173,17 @@
             },
           });
 
-          gigya.hasSession().then(function (sessionExist) {
-            console.log("fired from HTML JS - Logged In", sessionExist);
-            if (sessionExist) {
-              // loginUI();
-              console.log("User has session, should be logged in.")
-            } else {
-              // logoutUI();
-              console.log("User doesn't have session, should be logged out.")
-            }
-          });
+          // Another way of verifying the user session, but stick with the above. gigya.accounts.session.verify
+          // gigya.hasSession().then(function (sessionExist) {
+          //   console.log("fired from HTML JS - Logged In", sessionExist);
+          //   if (sessionExist) {
+          //     // loginUI();
+          //     console.log("User has session, should be logged in.")
+          //   } else {
+          //     // logoutUI();
+          //     console.log("User doesn't have session, should be logged out.")
+          //   }
+          // });
         }
 
         // Call the function initially
@@ -159,12 +222,13 @@
     function login() {
       gigya.sso.login({
         authFlow: "redirect",
-        redirectURL: window.location.href,
+        //redirectURL: window.location.href,
         context: {
-          myCustomLang: "en",
-          myCustomSessionExpiration: 60 * 60 * 24 * 3,
-          useChildContext: true,
-          source: "online"
+          //myCustomLang: "en",
+          //myCustomSessionExpiration: 60 * 60 * 24 * 3,
+          //useChildContext: false,
+          source: "bookings",
+          redirect: window.location.href
         },
       });
     }
@@ -185,7 +249,7 @@
   </script>
   <script src="https://cdns.gigya.com/js/gigya.js?apikey=4_rRdNpwgkoWC395b6eGf3CA"></script>
   <script src="https://code.jquery.com/jquery-3.4.1.min.js"
-    integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>  
+    integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
 </body>
 
 </html>
